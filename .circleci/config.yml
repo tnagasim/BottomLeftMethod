@@ -6,11 +6,9 @@ jobs:
     steps:
       - checkout
       - run:
-        command: |
-          sudo pip install pipenv
+        command: 'sudo pip install pipenv'
       - run:
-        command: |
-          pipenv install
+        command: 'pipenv install'
       - store_test_results:
         path: test-results
       - store_artifacts:
