@@ -5,10 +5,8 @@ jobs:
       - image: circleci/python:3.8.7
     steps:
       - checkout
-      - run:
-        command: 'sudo pip install pipenv'
-      - run:
-        command: 'pipenv install'
+      - run: sudo pip install pipenv
+      - run: pipenv install
       - store_test_results:
         path: test-results
       - store_artifacts:
