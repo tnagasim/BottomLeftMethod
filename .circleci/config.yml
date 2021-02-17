@@ -8,7 +8,7 @@ jobs:
       - run: sudo pip install pipenv
       - run: pipenv install
       - store_test_results:
-        path: test-results
+          path: test-results
       - store_artifacts:
-        path: test-results
-        destination: tr1
+          path: test-results
+          destination: tr1
