@@ -8,6 +8,8 @@ jobs:
       - run:
         command: |
           sudo pip install pipenv
+      - run:
+        command: |
           pipenv install
       - store_test_results:
         path: test-results
