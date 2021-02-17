@@ -1,0 +1,4 @@
+__pycache__
+.vscode
+*.ipynb
+bottom_left_method.py
