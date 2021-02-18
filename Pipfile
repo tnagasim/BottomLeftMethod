@@ -9,6 +9,7 @@ v = {editable = true,version = "*"}
 
 [packages]
 numpy = "*"
+pytest = "*"
 
 [requires]
 python_version = "3.8"
