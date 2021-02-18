@@ -26,5 +26,5 @@ case.stack(bottom_left2.Rect(np.array([0, 0, 4, 10])))
 
 
 # %%
-case.stacked
+print(case.stacked)
 # %%
