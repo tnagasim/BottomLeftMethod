@@ -15,7 +15,7 @@ class Rect:
             return True
         min_p = np.maximum(self.minmax_p[0, :], case.stacked[:, 0, :])
         max_p = np.minimum(self.minmax_p[1, :], case.stacked[:, 1, :])
-        return (min_p >= max_p).any() and self.is_inside_of(case)
+        return (min_p >= max_p).any()
 
     def is_inside_of(self, case):
         return (case.minmax_p[0, :] <= self.minmax_p[0, :]).all() \
@@ -28,25 +28,48 @@ class Rect:
 
 
 @dataclass
-class BottomLeftPoint:
+class Case:
+    minmax_p: np.array
     stacked: np.array
 
+    def stack(self, rect_size, method):
+        rect_point = method.calc_rect_point(rect_size)
+        self.stacked = np.concatenate([self.stacked, rect_point])
+
+    @staticmethod
+    def create(size):
+        minmax_p = np.array([[0] * len(size), size])
+        stacked = np.zeros((0, 2, len(size)))
+        return Case(minmax_p, stacked)
+
+@dataclass
+class BottomLeftMethod:
+    case: Case
+
+    def calc_rect_point(self, rect_size):
+        cand = self.make_candidates(rect_size)
+        cand_inside = [p for p in cand if p.is_inside_of(self.case)]
+        blfp = [p for p in cand_inside if p.is_feasible_point(self.case)]
+        min_p = min(blfp, key=lambda v: tuple(v.minmax_p[0, ::-1]))
+        min_p = min_p.minmax_p.reshape((1, 2, -1))
+        return min_p
+
     def make_cand0(self):
-        _, m, n = self.stacked.shape
+        _, m, n = self.case.stacked.shape
         cand0 = np.zeros((1, m, n))
         return cand0
 
     def make_cand1(self):
         cand1 = []
-        for i in range(self.stacked.shape[2]):
-            temp = np.zeros_like(self.stacked)
-            temp[:, 0, i] = self.stacked[:, 1, i]
+        for i in range(self.case.stacked.shape[2]):
+            temp = np.zeros_like(self.case.stacked)
+            temp[:, 0, i] = self.case.stacked[:, 1, i]
             cand1.append(temp)
         return np.concatenate(cand1)
 
     def make_cand2(self):
-        _, m, n = self.stacked.shape
-        perms = itertools.permutations(self.stacked, n)
+        _, m, n = self.case.stacked.shape
+        perms = itertools.permutations(self.case.stacked, n)
         cand2 = np.array([[[p[i][1, i] for i in range(n)], [0] * n] for p in perms])
         if len(cand2):
             return cand2
@@ -61,22 +84,3 @@ class BottomLeftPoint:
         cand[:, 1, :] = cand[:, 0, :] + rect.get_size()
         cand = [Rect(p) for p in cand]
         return cand
-
-
-@dataclass
-class Case:
-    minmax_p: np.array
-    stacked: np.array
-
-    def stack(self, rect_size):
-        cand = BottomLeftPoint(self.stacked).make_candidates(rect_size)
-        blfp = [p for p in cand if p.is_feasible_point(self)]
-        min_p = min(blfp, key=lambda v: [v.minmax_p[0, i] for i in reversed(range(self.minmax_p.shape[1]))])
-        min_p = min_p.minmax_p.reshape((1, 2, -1))
-        self.stacked = np.concatenate([self.stacked, min_p])
-
-    @staticmethod
-    def create(size):
-        minmax_p = np.array([[0] * len(size), size])
-        stacked = np.zeros((0, 2, len(size)))
-        return Case(minmax_p, stacked)
