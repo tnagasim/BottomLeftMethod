@@ -1,4 +1,3 @@
-from audioop import reverse
 import itertools
 import numpy as np
 from dataclasses import dataclass
@@ -6,22 +5,26 @@ from dataclasses import dataclass
 
 @dataclass
 class Rect:
-    def __init__(self, size) -> None:
-        self.l_b_r_t = np.array([[0] * len(size), size]) if type(size) is list else size
+    minmax_p: np.array
 
     def get_size(self):
-        return self.l_b_r_t[1, :] - self.l_b_r_t[0, :]
+        return self.minmax_p[1, :] - self.minmax_p[0, :]
 
     def is_feasible_point(self, case):
         if len(case.stacked) == 0:
             return True
-        min_p = np.maximum(self.l_b_r_t[0, :], case.stacked[:, 0, :])
-        max_p = np.minimum(self.l_b_r_t[1, :], case.stacked[:, 1, :])
+        min_p = np.maximum(self.minmax_p[0, :], case.stacked[:, 0, :])
+        max_p = np.minimum(self.minmax_p[1, :], case.stacked[:, 1, :])
         return (min_p >= max_p).any() and self.is_inside_of(case)
 
     def is_inside_of(self, case):
-        return (case.l_b_r_t[0, :] <= self.l_b_r_t[0, :]).all() \
-            and (self.l_b_r_t[1, :] <= case.l_b_r_t[1, :]).all()
+        return (case.minmax_p[0, :] <= self.minmax_p[0, :]).all() \
+            and (self.minmax_p[1, :] <= case.minmax_p[1, :]).all()
+
+    @staticmethod
+    def create(size):
+        minmax_p = np.array([[0] * len(size), size]) if type(size) is list else size
+        return Rect(minmax_p)
 
 
 @dataclass
@@ -49,8 +52,8 @@ class BottomLeftPoint:
             return cand2
         return np.zeros((0, m, n))
 
-    def make_candidates(self, rect):
-        rect = Rect(rect)
+    def make_candidates(self, rect_size):
+        rect = Rect.create(rect_size)
         cand0 = self.make_cand0()
         cand1 = self.make_cand1()
         cand2 = self.make_cand2()
@@ -62,13 +65,18 @@ class BottomLeftPoint:
 
 @dataclass
 class Case:
-    def __init__(self, size) -> None:
-        self.l_b_r_t = np.array([[0] * len(size), size])  # [[left, bottom], [right, top]]
-        self.stacked = np.zeros((0, 2, len(size)))
+    minmax_p: np.array
+    stacked: np.array
 
-    def stack(self, rect):
-        cand = BottomLeftPoint(self.stacked).make_candidates(rect)
+    def stack(self, rect_size):
+        cand = BottomLeftPoint(self.stacked).make_candidates(rect_size)
         blfp = [p for p in cand if p.is_feasible_point(self)]
-        min_p = min(blfp, key=lambda v: [v.l_b_r_t[0, i] for i in reversed(range(self.l_b_r_t.shape[1]))])
-        min_p = min_p.l_b_r_t.reshape((1, 2, -1))
+        min_p = min(blfp, key=lambda v: [v.minmax_p[0, i] for i in reversed(range(self.minmax_p.shape[1]))])
+        min_p = min_p.minmax_p.reshape((1, 2, -1))
         self.stacked = np.concatenate([self.stacked, min_p])
+
+    @staticmethod
+    def create(size):
+        minmax_p = np.array([[0] * len(size), size])
+        stacked = np.zeros((0, 2, len(size)))
+        return Case(minmax_p, stacked)
