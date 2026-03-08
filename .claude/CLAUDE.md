@@ -49,6 +49,12 @@
 
 ---
 
+## Markdown編集ルール
+
+- Markdownファイルを作成・編集した場合、表（table）があればVSCode拡張の **Table Formatter**（`shuworks.vscode-table-formatter`）を使用して表を整形する
+
+---
+
 ## コア原則
 
 - **シンプル第一**：すべての変更をできる限りシンプルにする。影響するコードを最小限にする。
