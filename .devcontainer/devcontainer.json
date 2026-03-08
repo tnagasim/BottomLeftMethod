@@ -34,7 +34,9 @@
 			},
 			"extensions": [
 				"ms-python.python",
-				"ms-python.vscode-pylance"
+				"ms-python.vscode-pylance",
+				"shuworks.vscode-table-formatter",
+				"yzhang.markdown-all-in-one"
 			]
 		}
 	},
